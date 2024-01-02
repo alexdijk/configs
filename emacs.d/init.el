@@ -1,6 +1,6 @@
 ;; 
 ;; init.el - axd
-;; 20231231
+;;
 
 ;; starting with straight.el
 (defvar bootstrap-version)
@@ -22,24 +22,24 @@
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 
-;; setting initial screen sizes
-(if (display-graphic-p)
-   (progn
-     (setq initial-frame-alist
-           '(
-             (width . 120) ; chars
-             (height . 50) ; lines       
-             (left . 50)
-             (top . 50)))
-     (setq default-frame-alist
-           '(
-             (width . 120)
-             (height . 50)
-             (left . 50)
-             (top . 50))))
- (progn
-   (setq initial-frame-alist '( (tool-bar-lines . 0)))
-   (setq default-frame-alist '( (tool-bar-lines . 0)))))
+;; ;; setting initial screen sizes
+;; (if (display-graphic-p)
+;;    (progn
+;;      (setq initial-frame-alist
+;;            '(
+;;              (width . 120) ; chars
+;;              (height . 50) ; lines       
+;;              (left . 50)
+;;              (top . 50)))
+;;      (setq default-frame-alist
+;;            '(
+;;              (width . 120)
+;;              (height . 50)
+;;              (left . 50)
+;;              (top . 50))))
+;; (progn
+;;   (setq initial-frame-alist '( (tool-bar-lines . 0)))
+;;   (setq default-frame-alist '( (tool-bar-lines . 0)))))
 
 (if (window-system)
     (set-frame-font "Roboto Mono Medium" nil t))
@@ -166,6 +166,27 @@
 
 ;;(show-paren-mode t)
 
+(use-package projectile
+  :straight t
+  :ensure t
+  :init
+  (projectile-mode +1)
+  :bind (:map projectile-mode-map
+	      ("s-p" . projectile-command-map)
+	      ("C-c p" . projectile-command-map)))
+
+;; vterm / better terminal
+(use-package vterm
+  :straight t
+  :ensure t)
+
+;; config vterm
+(global-set-key [f2] 'vterm-toggle)
+(global-set-key [C-f2] 'vterm-toggle-cd)
+(define-key vterm-mode-map [(control return)] #'vterm-toggle-insert-cd)
+(define-key vterm-mode-map (kbd "s-n") 'vterm-toggle-forward)
+(define-key vterm-mode-map (kbd "s-p") 'vterm-toggle-backward)
+
 ;; helm
 (use-package helm
   :straight t)
@@ -195,9 +216,9 @@
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown"))
 
-;; give us scratch
-(setq initial-buffer-choice t
-      inhibit-startup-screen t)
+;; ;; give us scratch
+;; (setq initial-buffer-choice t
+;;       inhibit-startup-screen t)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -212,5 +233,3 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-
-
