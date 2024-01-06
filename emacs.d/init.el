@@ -1,6 +1,6 @@
-;; 
 ;; init.el - axd
 ;;
+;; initialization starts with early-init.el
 
 ;; starting with straight.el
 (defvar bootstrap-version)
@@ -18,34 +18,7 @@
 
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
-
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
-
-;; ;; setting initial screen sizes
-;; (if (display-graphic-p)
-;;    (progn
-;;      (setq initial-frame-alist
-;;            '(
-;;              (width . 120) ; chars
-;;              (height . 50) ; lines       
-;;              (left . 50)
-;;              (top . 50)))
-;;      (setq default-frame-alist
-;;            '(
-;;              (width . 120)
-;;              (height . 50)
-;;              (left . 50)
-;;              (top . 50))))
-;; (progn
-;;   (setq initial-frame-alist '( (tool-bar-lines . 0)))
-;;   (setq default-frame-alist '( (tool-bar-lines . 0)))))
-
-(if (window-system)
-    (set-frame-font "Roboto Mono Medium" nil t))
-;; some other standard options
-;;    (set-frame-font "Fira Mono" nil t))
-;;    (set-frame-font "Source Code Pro 10"))
+(setq use-package-always-defer t)
 
 (column-number-mode 1)
 (line-number-mode 1)
@@ -58,6 +31,31 @@
 (setq inhibit-splash-screen t)
 (setq initial-scratch-message nil)
 
+(use-package emacs
+  :init
+  (set-charset-priority 'unicode)
+  (setq locale-coding-system 'utf-8
+	coding-system-for-read 'utf-8
+	coding-system-for-write 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
+  (setq default-process-coding-system '(utf-8-unix . utf-8-unix)))
+
+(use-package emacs
+  :init
+  (if (window-system)
+       (set-face-attribute 'default nil
+       :font "Fira Mono"
+       :height 100))
+  (global-visual-line-mode))
+
+;;    (set-frame-font "Roboto Mono Medium" nil t))
+;; some other standard options
+;;    (set-frame-font "Fira Mono" nil t))
+;;    (set-frame-font "Source Code Pro 10"))
+
 ;; scroll one line at a time (less "jumpy" than defaults)
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
 (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
@@ -65,25 +63,26 @@
 (setq scroll-step 1) ;; keyboard scroll one line at a time
 (setq scroll-margin 5)
 
-(let ((backup-dir(concat user-emacs-directory "./backup")))
+;; ;; set the backup directory
+(let ((backup-dir (concat (getenv "HOME") "/.local/share/emacs/backup")))
   (unless (file-directory-p backup-dir)
     (mkdir backup-dir t))
-  (setq backup-directory-alist (cons(cons "." backup-dir) nil)))
+  (setq backup-directory-alist (cons (cons backup-dir nil) nil)))
 
-;; loading Zenburn theme
-;; settings need before loading the theme
-(setq zenburn-use-variable-pitch t)
-(setq zenburn-scale-org-headlines t)
-(setq zenburn-scale-outline-headlines t)
+;; ;; settings need before loading the theme
+;; (setq zenburn-use-variable-pitch t)
+;; (setq zenburn-scale-org-headlines t)
+;; (setq zenburn-scale-outline-headlines t)
 
-(use-package zenburn-theme
-  :straight t)
-(load-theme 'zenburn t)
-(transient-mark-mode t)
+;; ;; loading Zenburn theme
+;; (use-package zenburn-theme
+;;   :straight t)
+;; (load-theme 'zenburn t)
+;; (transient-mark-mode t)
 
 (add-hook 'prog-mode-hook
 	  'display-line-numbers-mode)
-
+	
 (winner-mode t)
 
 ;; setting up smart modeline
@@ -97,13 +96,13 @@
 
 ;; starting which-key to find keys
 (use-package which-key
-  ;;  :diminish which-key-mode
   :straight t
-  :config
-  (which-key-mode t)
+  :init
   (setq which-key-idle-delay 0.5
 	which-key-popup-type 'side-window
-	which-key-side-window-location 'bottom))
+	which-key-side-window-location 'bottom)
+  :config
+  (which-key-mode t))
 
 ;; org mode
 (use-package org
@@ -113,10 +112,16 @@
 (global-set-key (kbd "C-c a") 'org-agenda)
 (global-set-key (kbd "C-c c") 'org-capture)
 
-(use-package org-bullets
+(global-prettify-symbols-mode t)
+(setq org-hide-leading-stars t)
+(setq org-src-fontify-natively t)
+
+(use-package org-superstar
   :straight t
-  :hook
-  (org-mode . org-bullets-mode))
+  :config
+  (setq org-superstar-special-todo-items t)
+  (add-hook 'org-mode-hook (lambda ()
+			     (org-superstar-mode t))))
 
 ;; NEEDS more research
 ;; ;; macro for the euro sign: "C-x 8 RET #x20AC RET""
@@ -132,68 +137,67 @@
 ;;   (interactive "p")
 ;;     (insert (string (make-char 'latin-iso8859-15 164))))
 
-;; specific Mac options, Cmd becomes Meta, Option becomes Ctrl 
-(setq mac-option-key-is-meta nil
-      mac-command-key-is-meta t
-      mac-command-modifier 'meta
-      mac-option-modifier 'control)
-
-;; [ai]spell configuration
-(setq-default ispell-program-name "aspell")
-
-(cond
-((executable-find "aspell")
- (setq ispell-program-name "aspell")
- (setq ispell-extra-args '("--sug-mode=ultra"  "--lang=nl")))
-(message "aspell not found"))
+(use-package emacs
+  :init
+  (when (eq system-type 'darwin)
+    (setq mac-option-key-is-meta nil
+	  mac-command-key-is-meta t
+	  mac-command-modifier 'meta
+	  mac-option-modifier 'control)))
  
-(dolist (hook '(text-mode-hook))
-  (add-hook hook (lambda () (flyspell-mode 1))))
-
 (setq TeX-auto-save t)
 (setq TeX-parse-self t)
 (setq-default TeX-master nil)
 (add-hook 'LaTeX-mode-hook 'visual-line-mode)
 
-;; smartparens
-(use-package smartparens
-  :straight t)
-(require 'smartparens-config)
-(add-hook 'prog-mode-hook 'turn-on-smartparens-mode)
-(show-smartparens-global-mode 1)
-;;(add-hook 'rust-mode-hook #'smartparens-mode)
-;;(add-hook 'minibuffer-setup-hook 'turn-on-smartparens-strict-mode)
-
-;;(show-paren-mode t)
-
-(use-package projectile
-  :straight t
-  :ensure t
-  :init
-  (projectile-mode +1)
-  :bind (:map projectile-mode-map
-	      ("s-p" . projectile-command-map)
-	      ("C-c p" . projectile-command-map)))
+(use-package smartparens-mode
+  :straight (smartparens 
+	      :host github
+	      :repo "Fuco1/smartparens"
+	      :files (:defaults))
+  :ensure smartparens
+  :config
+  (require 'smartparens-config)
+  (show-smartparens-global-mode 1)
+  (turn-on-smartparens-strict-mode)
+  :hook (prog-mode text-mode markdown-mode org-mode)
+  :custom (sp-highlight-pair-overlay nil))
 
 ;; vterm / better terminal
 (use-package vterm
   :straight t
   :ensure t)
 
-;; config vterm
-(global-set-key [f2] 'vterm-toggle)
-(global-set-key [C-f2] 'vterm-toggle-cd)
-(define-key vterm-mode-map [(control return)] #'vterm-toggle-insert-cd)
-(define-key vterm-mode-map (kbd "s-n") 'vterm-toggle-forward)
-(define-key vterm-mode-map (kbd "s-p") 'vterm-toggle-backward)
+(use-package vterm-toggle
+  :straight t
+  :ensure t
+  :bind
+  ("<f2>" . vterm-toggle))
 
 ;; helm
 (use-package helm
-  :straight t)
-;;(require 'helm-config)
+  :straight t
+  :init
+  (helm-mode t))
 
-(helm-autoresize-mode t)
-(helm-mode 1)
+(use-package helm-icons
+  :straight t
+  :custom
+  (helm-icons-provider 'all-the-icons)
+  :config
+  (helm-icons-enable))
+
+(use-package all-the-icons
+  :straight t
+  :config
+  (all-the-icons-install-fonts 'install-without-asking))
+
+(use-package helm-swoop
+  :straight t
+  :custom
+  (helm-swoop-speed-or-colorl nil "Give up color for speed")
+  (helm-swoop-split-with-multiple-windows nil "Do not split window"))
+
 (global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "C-x b") 'helm-mini)
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
@@ -206,19 +210,40 @@
 
 (define-key special-event-map [config-changed-event] 'ignore)
 
+;; [ai]spell configuration
+(cond ((file-exists-p "/usr/bin/aspell")
+       (setq ispell-program-name "aspell")
+       (setq ispell-dictionary "nl")
+       (setq ispell-extra-args '("--sug-mode=ultra"  "--lang=nl")))
+      ((message "ERROR: aspell not found")))
+
+;; Flyspell mode
+(use-package flyspell
+  :straight t
+  :ensure t
+  :hook
+  ((prog-mode . flyspell-prog-mode)
+   ((org-mode markdown-mode text) . flyspell-mode))
+  :config
+  (custom-set-faces '(flyspell-incorrect ((t (:inverse-video t)))))
+  (dolist (hook '(text-mode-hook))
+    (add-hook hook (lambda ()
+		     (flyspell-mode 1)))))
+
+(use-package flyspell-correct
+  :straight t
+  :after flyspell
+  :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+
 (use-package flyspell-correct-helm
-  :straight t)
-(define-key flyspell-mode-map (kbd "C-;") 'flyspell-correct-wrapper)
+  :straight t
+  :after flyspell-correct)
 
 (use-package markdown-mode
   :straight t
   :ensure t
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown"))
-
-;; ;; give us scratch
-;; (setq initial-buffer-choice t
-;;       inhibit-startup-screen t)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
