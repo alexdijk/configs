@@ -17,6 +17,8 @@
   (load bootstrap-file nil 'nomessage))
 
 (straight-use-package 'use-package)
+;; extra theme
+(straight-use-package 'borland-blue-theme)
 (setq straight-use-package-by-default t)
 (setq use-package-always-defer t)
 
@@ -67,7 +69,7 @@
 (let ((backup-dir (concat (getenv "HOME") "/.local/share/emacs/backup")))
   (unless (file-directory-p backup-dir)
     (mkdir backup-dir t))
-  (setq backup-directory-alist (cons (cons backup-dir nil) nil)))
+  (setq backup-directory-alist (cons (cons "." backup-dir) nil)))
 
 ;; ;; settings need before loading the theme
 ;; (setq zenburn-use-variable-pitch t)
@@ -97,6 +99,7 @@
 ;; starting which-key to find keys
 (use-package which-key
   :straight t
+  :demand t
   :init
   (setq which-key-idle-delay 0.5
 	which-key-popup-type 'side-window
@@ -245,16 +248,20 @@
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown"))
 
+;; Common Lisp
+(load (expand-file-name "~/.local/share/slime-helper.el"))
+(setq inferior-lisp-program "/usr/local/bin/sbcl")
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("18cf5d20a45ea1dff2e2ffd6fbcd15082f9aa9705011a3929e77129a971d1cb3" default)))
+   '("296da7c17c698e963c79b985c6822db0b627f51474c161d82853d2cb1b90afb0" "18cf5d20a45ea1dff2e2ffd6fbcd15082f9aa9705011a3929e77129a971d1cb3" default)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(flyspell-incorrect ((t (:inverse-video t)))))

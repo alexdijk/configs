@@ -1,18 +1,24 @@
+zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+kernel-tools
+openssl
+jc / jq
+git / https://cli.github.com/ (gh)
+gcc/g++
+cmake
+
 texlive
 emacs
 aspell / en,nl,es
 pandoc
 libreoffice
-jc / jq
-git / https://cli.github.com/
-gcc/g++
-zsh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-cmake
+
 dconf / tweaks
 ripgrep
 vim
-kernel-tools
-openssl
 htop
-
+= codecs / vlc
+nordvpn
+sbcl
+quicklisp
