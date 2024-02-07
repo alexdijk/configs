@@ -26,3 +26,5 @@
   (setq default-frame-alist '( (tool-bar-lines . 0)))))
 
 (setq package-enable-at-startup nil)
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+

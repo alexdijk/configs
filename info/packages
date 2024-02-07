@@ -15,10 +15,18 @@ pandoc
 libreoffice
 
 dconf / tweaks
-ripgrep
+
 vim
 htop
-= codecs / vlc
+vlx => codecs
 nordvpn
 sbcl
 quicklisp
+ripgrep
+rustup
+fzf
+eza
+bat
+
+mu / github.com/djcb/mu
+offlineimap

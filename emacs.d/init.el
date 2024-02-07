@@ -1,26 +1,80 @@
 ;; init.el - axd
 ;;
+;; updated to packagemanagement by elpaca
+;;
 ;; initialization starts with early-init.el
+;; Elpaca configuration -*- lexical-binding: t; -*-
+;;
+(defvar elpaca-installer-version 0.6)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (< emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                 ((zerop (call-process "git" nil buffer t "clone"
+                                       (plist-get order :repo) repo)))
+                 ((zerop (call-process "git" nil buffer t "checkout"
+                                       (or (plist-get order :ref) "--"))))
+                 (emacs (concat invocation-directory invocation-name))
+                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                 ((require 'elpaca))
+                 ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (load "./elpaca-autoloads")))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
 
-;; starting with straight.el
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 7))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+;; Install a package via the elpaca macro
+;; See the "recipes" section of the manual for more details.
+;; (elpaca example-package)
 
-(straight-use-package 'use-package)
-;; extra theme
-(straight-use-package 'borland-blue-theme)
-(setq straight-use-package-by-default t)
-(setq use-package-always-defer t)
+(defmacro use-feature (name &rest args)
+  "Like `use-package' but accounting for asynchronous installation.
+  NAME and ARGS are in `use-package'."
+  (declare (indent defun))
+  `(use-package ,name
+     :elpaca nil
+     ,@args))
+
+;; Install use-package support
+(elpaca elpaca-use-package
+  (require 'elpaca-use-package)
+  (elpaca-use-package-mode)
+  (setq elpaca-use-package-by-default t))
+
+;; Block until current queue processed.
+(elpaca-wait)
+
+;; enhancing the debug possibilities
+(if debug-on-error
+    (setq use-package-verbose t
+          use-package-expand-minimally nil
+          use-package-compute-statistics t)
+  (setq use-package-verbose nil
+        use-package-expand-minimally t))
+
+;; turn package warnings off
+(setq byte-compile-warnings '(not obsolete))
+(setq warning-suppress-log-types '((comp) (bytecomp)))
+(setq native-comp-async-report-warnings-errors 'silent)
 
 (column-number-mode 1)
 (line-number-mode 1)
@@ -33,30 +87,24 @@
 (setq inhibit-splash-screen t)
 (setq initial-scratch-message nil)
 
-(use-package emacs
-  :init
-  (set-charset-priority 'unicode)
-  (setq locale-coding-system 'utf-8
-	coding-system-for-read 'utf-8
-	coding-system-for-write 'utf-8)
-  (set-terminal-coding-system 'utf-8)
-  (set-keyboard-coding-system 'utf-8)
-  (set-selection-coding-system 'utf-8)
-  (prefer-coding-system 'utf-8)
-  (setq default-process-coding-system '(utf-8-unix . utf-8-unix)))
+(set-charset-priority 'unicode)
+(setq locale-coding-system 'utf-8
+      coding-system-for-read 'utf-8
+      coding-system-for-write 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+(setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+(setq-default tab-always-indent 'complete)
 
-(use-package emacs
-  :init
-  (if (window-system)
-       (set-face-attribute 'default nil
-       :font "Fira Mono"
-       :height 100))
-  (global-visual-line-mode))
-
-;;    (set-frame-font "Roboto Mono Medium" nil t))
-;; some other standard options
-;;    (set-frame-font "Fira Mono" nil t))
-;;    (set-frame-font "Source Code Pro 10"))
+;; setting faces
+;; possible options: "Roboto Mono Medium", "Fira Mono" or "Source Code Pro 10"
+(if (window-system)
+    (set-face-attribute 'default nil
+			:family "JetBrains Mono"
+			:height 120
+			:weight 'regular))
 
 ;; scroll one line at a time (less "jumpy" than defaults)
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
@@ -64,31 +112,37 @@
 (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
 (setq scroll-step 1) ;; keyboard scroll one line at a time
 (setq scroll-margin 5)
+;; (setq mwheel-coalesce-scroll-events nil)
+;; (pixel-scroll-precision-mode t)
 
-;; ;; set the backup directory
+;; set the backup directory
 (let ((backup-dir (concat (getenv "HOME") "/.local/share/emacs/backup")))
   (unless (file-directory-p backup-dir)
     (mkdir backup-dir t))
   (setq backup-directory-alist (cons (cons "." backup-dir) nil)))
 
-;; ;; settings need before loading the theme
+;; loading Zenburn theme
+;; settings need before loading the theme
 ;; (setq zenburn-use-variable-pitch t)
 ;; (setq zenburn-scale-org-headlines t)
 ;; (setq zenburn-scale-outline-headlines t)
-
-;; ;; loading Zenburn theme
+;; ---
 ;; (use-package zenburn-theme
-;;   :straight t)
+;;   :elpaca t)
 ;; (load-theme 'zenburn t)
 ;; (transient-mark-mode t)
 
+;; extra theme
+(use-package borland-blue-theme :demand t)
+;; linenumbers hook
 (add-hook 'prog-mode-hook
 	  'display-line-numbers-mode)
-	
+
 (winner-mode t)
 
 ;; setting up smart modeline
 (use-package smart-mode-line
+  :elpaca t
   :config
   (setq sml/name-width 40
 	sml/mode-width 'full
@@ -98,63 +152,57 @@
 
 ;; starting which-key to find keys
 (use-package which-key
-  :straight t
-  :demand t
+  :elpaca t
   :init
   (setq which-key-idle-delay 0.5
 	which-key-popup-type 'side-window
 	which-key-side-window-location 'bottom)
   :config
-  (which-key-mode t))
+  (which-key-mode))
 
 ;; org mode
 (use-package org
-  :straight t)
-
-(global-set-key (kbd "C-c l") 'org-store-link)
-(global-set-key (kbd "C-c a") 'org-agenda)
-(global-set-key (kbd "C-c c") 'org-capture)
-
-(global-prettify-symbols-mode t)
-(setq org-hide-leading-stars t)
-(setq org-src-fontify-natively t)
+  :init (require 'org)
+  :config
+  (global-prettify-symbols-mode t)
+  (setq org-hide-leading-stars t)
+  (setq org-src-fontify-natively t)
+  :bind
+  ("C-c a" . org-agenda)
+  ("C-c c" . org-capture)
+  ("C-c l" . org-store-link)
+  ;; Zero Width Space / zwsp
+  ("C-c M-0" . (lambda () (interactive) (insert "\u200B")))
+  :hook
+  (org-mode . visual-line-mode))
+(elpaca-wait)
 
 (use-package org-superstar
-  :straight t
+  :elpaca t
   :config
   (setq org-superstar-special-todo-items t)
   (add-hook 'org-mode-hook (lambda ()
 			     (org-superstar-mode t))))
 
-;; NEEDS more research
-;; ;; macro for the euro sign: "C-x 8 RET #x20AC RET""
-;; (fset 'euro
-;;       (lambda (&optional arg) "Keyboard macro." (interactive "p")
-;; 	(kmacro-exec-ring-item
-;; 	 (quote ([24 56 return 35 120 50 48 65 67 return] 0 "%d")) arg)))
+;; Global key for the euro sign: "C-x 8 RET #x20AC RET""
+(keymap-global-set "C-c 5" '(lambda () "euro sign" (interactive) (insert "\u20AC")))
 
-;; (fset 'euro2 (kbd "C-x 8 RET 20AC RET"))
+;; Set the non-standard Mac keys
+(when (eq system-type 'darwin)
+  (setq mac-option-key-is-meta nil
+  mac-command-key-is-meta t
+  mac-command-modifier 'meta
+  mac-option-modifier 'control))
 
-;; (defun euro3 ()
-;;   "insert euro sign"
-;;   (interactive "p")
-;;     (insert (string (make-char 'latin-iso8859-15 164))))
-
-(use-package emacs
-  :init
-  (when (eq system-type 'darwin)
-    (setq mac-option-key-is-meta nil
-	  mac-command-key-is-meta t
-	  mac-command-modifier 'meta
-	  mac-option-modifier 'control)))
- 
+;; Some LateX settings
 (setq TeX-auto-save t)
 (setq TeX-parse-self t)
 (setq-default TeX-master nil)
 (add-hook 'LaTeX-mode-hook 'visual-line-mode)
 
+;; smartparens mode / proper parens checking
 (use-package smartparens-mode
-  :straight (smartparens 
+  :elpaca (smartparens 
 	      :host github
 	      :repo "Fuco1/smartparens"
 	      :files (:defaults))
@@ -168,35 +216,54 @@
 
 ;; vterm / better terminal
 (use-package vterm
-  :straight t
-  :ensure t)
+  :elpaca (vterm
+	   :post-build
+	   (progn
+	     (setq vterm-always-compile-module t)
+	     (require 'vterm)
+	     (with-current-buffer (get-buffer-create vterm-install-buffer-name)
+	       (goto-char (point-min))
+	       (while (not (eobp))
+		 (message "%S"
+			  (buffer-substring (line-beginning-position)
+					    (line-end-position)))
+		 (forward-line)))
+	     (when-let ((so (expand-file-name "./vterm-module.so"))
+			((file-exists-p so)))
+	       (make-symbolic-link
+		so (expand-file-name (file-name-nondirectory so)
+				     "../../builds/vterm")
+		'ok-if-already-exists))))
+  :commands (vterm vterm-other-window))
 
 (use-package vterm-toggle
-  :straight t
-  :ensure t
-  :bind
-  ("<f2>" . vterm-toggle))
+   :elpaca t
+   :ensure t
+   :after vterm
+   :bind
+   ("<f2>" . vterm-toggle))
 
 ;; helm
 (use-package helm
-  :straight t
+  :elpaca t
   :init
   (helm-mode t))
+(elpaca-wait)
 
 (use-package helm-icons
-  :straight t
+  :elpaca t
   :custom
   (helm-icons-provider 'all-the-icons)
   :config
   (helm-icons-enable))
 
 (use-package all-the-icons
-  :straight t
+  :elpaca t
   :config
   (all-the-icons-install-fonts 'install-without-asking))
 
 (use-package helm-swoop
-  :straight t
+  :elpaca t
   :custom
   (helm-swoop-speed-or-colorl nil "Give up color for speed")
   (helm-swoop-split-with-multiple-windows nil "Do not split window"))
@@ -210,7 +277,6 @@
 (define-key helm-map (kbd "TAB") #'helm-execute-persistent-action)
 (define-key helm-map (kbd "<tab>") #'helm-execute-persistent-action)
 (define-key helm-map (kbd "C-z") #'helm-select-action)
-
 (define-key special-event-map [config-changed-event] 'ignore)
 
 ;; [ai]spell configuration
@@ -221,29 +287,26 @@
       ((message "ERROR: aspell not found")))
 
 ;; Flyspell mode
-(use-package flyspell
-  :straight t
+(use-feature flyspell
+  :commands (flyspell-mode flyspell-prog-mode)
   :ensure t
-  :hook
-  ((prog-mode . flyspell-prog-mode)
-   ((org-mode markdown-mode text) . flyspell-mode))
   :config
   (custom-set-faces '(flyspell-incorrect ((t (:inverse-video t)))))
-  (dolist (hook '(text-mode-hook))
-    (add-hook hook (lambda ()
-		     (flyspell-mode 1)))))
+  (setq hook '(text-mode-hook org-mode mu4e-compose-mode git-commit-mode markdown-mode))
+  :hook
+  ('hook . flyspell-mode))
 
 (use-package flyspell-correct
-  :straight t
+  :elpaca t
   :after flyspell
   :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
 
 (use-package flyspell-correct-helm
-  :straight t
+  :elpaca t
   :after flyspell-correct)
 
 (use-package markdown-mode
-  :straight t
+  :elpaca t
   :ensure t
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown"))
@@ -252,13 +315,17 @@
 (load (expand-file-name "~/.local/share/slime-helper.el"))
 (setq inferior-lisp-program "/usr/local/bin/sbcl")
 
+;; load email configuration
+(load-file "~/.emacs.d/mu4e-conf.el")
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("296da7c17c698e963c79b985c6822db0b627f51474c161d82853d2cb1b90afb0" "18cf5d20a45ea1dff2e2ffd6fbcd15082f9aa9705011a3929e77129a971d1cb3" default)))
+   '("296da7c17c698e963c79b985c6822db0b627f51474c161d82853d2cb1b90afb0" "18cf5d20a45ea1dff2e2ffd6fbcd15082f9aa9705011a3929e77129a971d1cb3" default))
+ '(package-selected-packages '(eglot slime ef-themes ace-window)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

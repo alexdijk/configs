@@ -1,9 +1,13 @@
 ;; example configuration for mu4e
-(add-to-list 'load-path
-             "/usr/local/share/emacs/site-lisp/mu4e")
+(message "Reading mu4e-conf.el")
 
-(use-package mu4e)
+(require 'mu4e)
 
+;; (use-package mu4e
+;;	     :straight 
+;;	       (mu4e
+;;	     	:files "/usr/local/share/emacs/site-lisp/mu4e"))
+	     
 ;; use mu4e for e-mail in emacs
 (setq mail-user-agent 'mu4e-user-agent)
 
@@ -19,12 +23,13 @@
 ;; the maildirs you use frequently; access them with 'j' ('jump')
 (setq   mu4e-maildir-shortcuts
     '((:maildir "/Archive" :key ?a)
-      (:maildir "/Inbox"   :key ?i)
+      (:maildir "/INBOX"   :key ?i)
       (:maildir "/Sent"    :key ?s)))
 
 ;; the headers to show in the headers list -- a pair of a field
 ;; and its width, with `nil' meaning 'unlimited'
 ;; (better only use that for the last field.
+
 ;; These are the defaults:
 (setq mu4e-headers-fields
     '( (:date          .  25)    ;; alternatively, use :human-date
@@ -32,34 +37,37 @@
        (:from          .  22)
        (:subject       .  nil))) ;; alternatively, use :thread-subject
 
-;; program to get mail; alternatives are 'fetchmail', 'getmail'
-;; isync or your own shellscript. called when 'U' is pressed in
-;; main view.
-
 ;; If you get your mail without an explicit command,
 ;; use "true" for the command (this is the default)
-(setq mu4e-get-mail-command "fdm -kf ~/mailtest/.fdm.conf fetch")
+;; (setq mu4e-get-mail-command "fdm -kf ~/mailtest/.fdm.conf fetch")
 ;;      mu4e-update-interval 120)
+(setq mu4e-get-mail-command "offlineimap")
 
 ;; general emacs mail settings; used when composing e-mail
 ;; the non-mu4e-* stuff is inherited from emacs/message-mode
-(setq mu4e-compose-reply-to-address "alex.dijk@freedom.nl"
-      user-mail-address "alex.dijk@freedom.nl"
-      user-full-name  "Alex Dijk")
-(setq mu4e-compose-signature
-      "Alex Dijk\n\nOpenPGP: 60A4 91B1 BD69 85AE D4CC B83C E728 DBFB B747 31C5\n")
+(setq mu4e-compose-reply-to-address "XXX"
+      user-mail-address "XXX"
+      user-full-name  "xxx")
 
+(setq mu4e-compose-signature
+      (concat
+       "Alex Dijk\n"
+       "XXX"))
+
+(require 'smtpmail)
 ;; smtp mail setting
 (setq
-   message-send-mail-function 'smtpmail-send-it
-   ;;smtpmail-default-smtp-server "smtp.freedom.nl"
+   send-mail-function 'smtpmail-send-it
    smtpmail-smtp-server "smtp.freedom.nl"
-;;   smtpmail-local-domain "example.com"
+   smtpmail-default-smtp-server "smtp.freedom.nl"
+   smtpmail-smtp-service 587
+   smtpmail-stream-type 'starttls
 
-   ;; if you need offline mode, set these -- and create the queue dir
-   ;; with 'mu mkdir', i.e.. mu mkdir /home/user/Maildir/queue
-   ;;smtpmail-queue-mail  nil
-   ;;smtpmail-queue-dir  "/home/user/Maildir/queue/cur")
+   smtpmail-queue-mail t
+   smtpmail-queue-dir "/home/xxx/Documents/Maildir/Queue/cur")
+
+(setq smtpmail-debug-info t)
+(setq smtpmail-debug-verb t)
 
 ;; don't keep message buffers around
 (setq message-kill-buffer-on-exit t)
