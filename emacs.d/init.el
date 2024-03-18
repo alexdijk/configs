@@ -1,11 +1,11 @@
-;; init.el - axd
-;;
-;; updated to packagemanagement by elpaca
-;;
-;; initialization starts with early-init.el
-;; Elpaca configuration -*- lexical-binding: t; -*-
-;;
-(defvar elpaca-installer-version 0.6)
+;;; init.el --- the emacs init file  -*- lexical-binding: t; -*-
+;;; package: --- Summary:
+;;; Commentary:
+;;; combiniation of settings and packages
+;;; initialization starts with early-init.el
+;;;
+;;; Code:
+(defvar elpaca-installer-version 0.7)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
@@ -42,23 +42,19 @@
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
-;; Install a package via the elpaca macro
-;; See the "recipes" section of the manual for more details.
-;; (elpaca example-package)
-
-(defmacro use-feature (name &rest args)
-  "Like `use-package' but accounting for asynchronous installation.
-  NAME and ARGS are in `use-package'."
-  (declare (indent defun))
-  `(use-package ,name
-     :elpaca nil
-     ,@args))
+;; (defmacro use-feature (name &rest args)
+;; "Like `use-package' but accounting for asynchronous installation.
+;; NAME and ARGS are in `use-package'."
+;;   (declare (indent defun))
+;;   `(use-package ,name
+;;      :elpaca nil
+;;      ,@args))
 
 ;; Install use-package support
 (elpaca elpaca-use-package
   (require 'elpaca-use-package)
   (elpaca-use-package-mode)
-  (setq elpaca-use-package-by-default t))
+  (setq elpaca-use-package-always-ensure t))
 
 ;; Block until current queue processed.
 (elpaca-wait)
@@ -99,11 +95,12 @@
 (setq-default tab-always-indent 'complete)
 
 ;; setting faces
-;; possible options: "Roboto Mono Medium", "Fira Mono" or "Source Code Pro 10"
+;;
+;; possible options: "Roboto Mono Medium", "JetBrains Mono" or "Source Code Pro 10"
 (if (window-system)
     (set-face-attribute 'default nil
-			:family "JetBrains Mono"
-			:height 120
+			:family "IBM Plex Mono Text"
+			:height 100
 			:weight 'regular))
 
 ;; scroll one line at a time (less "jumpy" than defaults)
@@ -133,7 +130,8 @@
 ;; (transient-mark-mode t)
 
 ;; extra theme
-(use-package borland-blue-theme :demand t)
+(use-package borland-blue-theme :ensure t)
+
 ;; linenumbers hook
 (add-hook 'prog-mode-hook
 	  'display-line-numbers-mode)
@@ -142,7 +140,7 @@
 
 ;; setting up smart modeline
 (use-package smart-mode-line
-  :elpaca t
+  :ensure t
   :config
   (setq sml/name-width 40
 	sml/mode-width 'full
@@ -152,13 +150,16 @@
 
 ;; starting which-key to find keys
 (use-package which-key
-  :elpaca t
+  :ensure t
   :init
   (setq which-key-idle-delay 0.5
 	which-key-popup-type 'side-window
 	which-key-side-window-location 'bottom)
   :config
   (which-key-mode))
+
+(use-package olivetti
+  :ensure t)
 
 ;; org mode
 (use-package org
@@ -178,7 +179,7 @@
 (elpaca-wait)
 
 (use-package org-superstar
-  :elpaca t
+  :ensure t
   :config
   (setq org-superstar-special-todo-items t)
   (add-hook 'org-mode-hook (lambda ()
@@ -202,11 +203,11 @@
 
 ;; smartparens mode / proper parens checking
 (use-package smartparens-mode
-  :elpaca (smartparens 
-	      :host github
-	      :repo "Fuco1/smartparens"
-	      :files (:defaults))
-  :ensure smartparens
+  :ensure ( smartparens
+	    :host github
+	    :repo "Fuco1/smartparens"
+	    :files (:defaults))
+  ;; :ensure smartparens
   :config
   (require 'smartparens-config)
   (show-smartparens-global-mode 1)
@@ -216,7 +217,7 @@
 
 ;; vterm / better terminal
 (use-package vterm
-  :elpaca (vterm
+  :ensure (vterm
 	   :post-build
 	   (progn
 	     (setq vterm-always-compile-module t)
@@ -237,7 +238,6 @@
   :commands (vterm vterm-other-window))
 
 (use-package vterm-toggle
-   :elpaca t
    :ensure t
    :after vterm
    :bind
@@ -245,25 +245,25 @@
 
 ;; helm
 (use-package helm
-  :elpaca t
+  :ensure t
   :init
   (helm-mode t))
 (elpaca-wait)
 
 (use-package helm-icons
-  :elpaca t
+  :ensure t
   :custom
   (helm-icons-provider 'all-the-icons)
   :config
   (helm-icons-enable))
 
 (use-package all-the-icons
-  :elpaca t
+  :ensure t
   :config
   (all-the-icons-install-fonts 'install-without-asking))
 
 (use-package helm-swoop
-  :elpaca t
+  :ensure t
   :custom
   (helm-swoop-speed-or-colorl nil "Give up color for speed")
   (helm-swoop-split-with-multiple-windows nil "Do not split window"))
@@ -287,9 +287,9 @@
       ((message "ERROR: aspell not found")))
 
 ;; Flyspell mode
-(use-feature flyspell
+(use-package flyspell
   :commands (flyspell-mode flyspell-prog-mode)
-  :ensure t
+  :ensure nil
   :config
   (custom-set-faces '(flyspell-incorrect ((t (:inverse-video t)))))
   (setq hook '(text-mode-hook org-mode mu4e-compose-mode git-commit-mode markdown-mode))
@@ -297,19 +297,37 @@
   ('hook . flyspell-mode))
 
 (use-package flyspell-correct
-  :elpaca t
+  :ensure t
   :after flyspell
   :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
 
 (use-package flyspell-correct-helm
-  :elpaca t
+  :ensure t
   :after flyspell-correct)
 
+(use-package flycheck
+  :ensure t
+  :commands (flycheck-mode)
+  :custom (flycheck-emacs-lisp-load-path 'inherit "necessary with alternatives to package.el"))
+
+(use-package flycheck-package
+  :ensure t
+  :after (flychceck)
+  :config (flycheck-package-setup)
+  (add-to-list 'display-buffer-alist
+               '("\\*Flycheck errors\\*"  display-buffer-below-selected (window-height . 0.15))))
+
 (use-package markdown-mode
-  :elpaca t
   :ensure t
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown"))
+
+(use-package magit
+  :ensure t
+  :after transient)
+
+(use-package transient
+  :ensure t)
 
 ;; Common Lisp
 (load (expand-file-name "~/.local/share/slime-helper.el"))
@@ -325,6 +343,9 @@
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
    '("296da7c17c698e963c79b985c6822db0b627f51474c161d82853d2cb1b90afb0" "18cf5d20a45ea1dff2e2ffd6fbcd15082f9aa9705011a3929e77129a971d1cb3" default))
+ '(eshell-modules-list
+   '(eshell-alias eshell-banner eshell-basic eshell-cmpl eshell-dirs eshell-tramp eshell-extpipe eshell-glob eshell-hist eshell-ls eshell-pred eshell-prompt eshell-script eshell-term eshell-unix))
+ '(org-latex-compiler "xelatex")
  '(package-selected-packages '(eglot slime ef-themes ace-window)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -332,3 +353,6 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(flyspell-incorrect ((t (:inverse-video t)))))
+
+(provide 'init)
+;;; init.el ends here
