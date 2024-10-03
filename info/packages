@@ -1,6 +1,7 @@
 zsh
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
+dev-tools (ubuntu-dev-tools)
 kernel-tools
 openssl
 jc / jq
@@ -8,25 +9,39 @@ git / https://cli.github.com/ (gh)
 gcc/g++
 cmake
 
-texlive
-emacs
+texlive (texlive-latex-extra)
+texlive-xetex
+latexmk
+emacs / vterm
+mu4e
+	mu / github.com/djcb/mu
+	offlineimap
 aspell / en,nl,es
 pandoc
 libreoffice
+chrome
+graphviz
 
-dconf / tweaks
+gnome dconf / tweaks
 
 vim
 htop
-vlx => codecs
+vlc => codecs
 nordvpn
-sbcl
-quicklisp
+#sbcl
+#quicklisp
 ripgrep
-rustup
+#rustup
 fzf
 eza
 bat
+fd-find
+tmux
+xteddy
 
-mu / github.com/djcb/mu
-offlineimap
+python3 full
+vewv
+pygame
+pylsp
+pip3
+

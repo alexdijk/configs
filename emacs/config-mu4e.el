@@ -1,13 +1,12 @@
-;; example configuration for mu4e
-(message "Reading mu4e-conf.el")
-
+;;; mu4e-conf.el --- mu4e configuration file  -*- lexical-binding: t; -*-
+;;; package --- Summary: mu4e-conf.el
+;;; Commentary:
+;;; elementary configuration file for the mail package mu/mu4e
+;;;
+;;; Code:
 (require 'mu4e)
+(require 'smtpmail)
 
-;; (use-package mu4e
-;;	     :straight 
-;;	       (mu4e
-;;	     	:files "/usr/local/share/emacs/site-lisp/mu4e"))
-	     
 ;; use mu4e for e-mail in emacs
 (setq mail-user-agent 'mu4e-user-agent)
 
@@ -26,13 +25,9 @@
       (:maildir "/INBOX"   :key ?i)
       (:maildir "/Sent"    :key ?s)))
 
-;; the headers to show in the headers list -- a pair of a field
-;; and its width, with `nil' meaning 'unlimited'
-;; (better only use that for the last field.
-
 ;; These are the defaults:
 (setq mu4e-headers-fields
-    '( (:date          .  25)    ;; alternatively, use :human-date
+      '((:date         .  12)    ;; alternatively, use :human-date
        (:flags         .   6)
        (:from          .  22)
        (:subject       .  nil))) ;; alternatively, use :thread-subject
@@ -45,29 +40,42 @@
 
 ;; general emacs mail settings; used when composing e-mail
 ;; the non-mu4e-* stuff is inherited from emacs/message-mode
-(setq mu4e-compose-reply-to-address "XXX"
-      user-mail-address "XXX"
-      user-full-name  "xxx")
+(setq mu4e-compose-reply-to-address "alex.dijk@freedom.nl"
+      user-mail-address "alex.dijk@freedom.nl"
+      user-full-name  "Alex Dijk")
 
 (setq mu4e-compose-signature
       (concat
-       "Alex Dijk\n"
-       "XXX"))
+       "Alex Dijk\n\n"
+       "m: +31-6-52607033\n"
+       "e: alex.dijk@freedom.nl"
+       "openpgp: E728DBFBB74731C5"))
 
-(require 'smtpmail)
-;; smtp mail setting
+;; smtpmail settings
 (setq
    send-mail-function 'smtpmail-send-it
    smtpmail-smtp-server "smtp.freedom.nl"
    smtpmail-default-smtp-server "smtp.freedom.nl"
+   smtpmail-servers-requiring-authorization "smtp.freedom.nl"
    smtpmail-smtp-service 587
    smtpmail-stream-type 'starttls
 
-   smtpmail-queue-mail t
-   smtpmail-queue-dir "/home/xxx/Documents/Maildir/Queue/cur")
+   ;; need offline mode, set these -- and create the queue dir
+   ;; with 'mu mkdir', i.e.. mu mkdir /home/user/Maildir/queue
+   smtpmail-queue-mail nil
+   smtpmail-queue-dir "/home/alexdijk/Documents/Maildir/Queue/cur")
 
-(setq smtpmail-debug-info t)
-(setq smtpmail-debug-verb t)
+(setq smtpmail-debug-info nil)
+(setq smtpmail-debug-verb nil)
 
 ;; don't keep message buffers around
 (setq message-kill-buffer-on-exit t)
+
+;; nice columns in mu4e
+(use-package mu4e-column-faces
+  :straight t
+  :after mu4e
+  :config (mu4e-column-faces-mode))
+
+(provide 'mu4-conf)
+;;; mu4e-conf.el ends here
