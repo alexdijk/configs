@@ -1,18 +1,29 @@
 zsh
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
+gnome-tweaks
+dconf-editor
+
 dev-tools (ubuntu-dev-tools)
 kernel-tools
 openssl
 jc / jq
 git / https://cli.github.com/ (gh)
 gcc/g++
+glib2-devel
+gmime30-devel
+xapian-devel
+cld2-devel
+texinfo
+guile30-devel
 cmake
 
 texlive (texlive-latex-extra)
 texlive-xetex
 latexmk
 emacs / vterm
+emacs-filesystem
+meson / ninja
 mu4e
 	mu / github.com/djcb/mu
 	offlineimap
@@ -21,13 +32,16 @@ pandoc
 libreoffice
 chrome
 graphviz
-
-gnome dconf / tweaks
+Webex
+Zoom
 
 vim
 htop
 vlc => codecs
 nordvpn
+sh <(curl -sSf https://downloads.nordcdn.com/apps/linux/install.sh)
+(if error: line 149, dnf to dnf4 (config-manager is not implemented in dnf5))
+
 #sbcl
 #quicklisp
 ripgrep
@@ -38,6 +52,7 @@ bat
 fd-find
 tmux
 xteddy
+veracrypt
 
 python3 full
 vewv
@@ -47,3 +62,6 @@ pip3
 
 transmission
 
+#optional
+taskwarrior
+vit

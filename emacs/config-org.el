@@ -102,6 +102,12 @@
                               ))
     (org-open-at-point)))
 
+(use-package org-ql
+  :straight t)
+
+(use-package helm-org-ql
+  :straight t)
+
 ;; Depending on universal argument try opening link
 (defun org-open-maybe (&optional arg)
   (interactive "P")
@@ -179,11 +185,11 @@
 	org-priority-default 2
 	org-priority-lowest 4)
   (setq org-fancy-priorities-list
-	'((?0 . "P0")
-          (?1 . "P1")
-          (?2 . "P2")
-          (?3 . "P3")
-          (?4 . "P4"))
+	'((?0 . "p0")
+          (?1 . "p1")
+          (?2 . "p2")
+          (?3 . "p3")
+          (?4 . "p4"))
 	org-priority-faces
 	'((?0 :foreground "DarkRed" :background "LightPink")
           (?1 :foreground "DarkOrange4" :background "LightGoldenrod")
@@ -277,6 +283,16 @@
 	org-roam-ui-update-on-save t
 	org-roam-ui-open-on-start t))
 
+;; org-mode-ox-odt backend
+(use-package ox-odt
+  :straight (org-mode-ox-odt
+	     :host github
+	     :repo "kjambunathan/org-mode-ox-odt"
+	     :files ("lisp/ox-odt.el"
+		     "lisp/odt.el"
+		     "etc"
+		     "docs"
+		     "contrib/odt/LibreOffice")))
 
 (setq org-latex-compiler "xelatex")
 (setq org-latex-pdf-process

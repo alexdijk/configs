@@ -77,5 +77,9 @@
   :after mu4e
   :config (mu4e-column-faces-mode))
 
+;; Helm additions to consider:
+;; https://github.com/emacs-helm/helm-mu
+;; helm-slime
+
 (provide 'mu4-conf)
 ;;; mu4e-conf.el ends here

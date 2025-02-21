@@ -28,3 +28,8 @@
 (setq package-enable-at-startup nil)
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
 
+;; Ignore X resources; its settings would be redundant with the other settings
+;; in this file and can conflict with later config (particularly where the
+;; cursor color is concerned).
+(advice-add #'x-apply-session-resources :override #'ignore)
+
